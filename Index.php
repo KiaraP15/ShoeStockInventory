@@ -1,43 +1,26 @@
 <?php
-include 'add_shoe.php'; // Include the CRUD operations file
+include 'add_shoe.php';
 
-// Check if form is submitted for adding a new shoe
+$message = '';
+
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["add_shoe"])) {
-    // Retrieve form data
     $brand = $_POST["brand"];
     $size = $_POST["size"];
     $color = $_POST["color"];
-    // Add shoe to database using the addShoe() function
     $shoe_id = addShoe($brand, $size, $color);
-    echo "New shoe added successfully with ID: $shoe_id";
+    $message = "New shoe added successfully with ID: $shoe_id";
 }
 
-// Check if form is submitted for deleting a shoe
+
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["delete_shoe"])) {
-    // Retrieve shoe ID to delete
     $shoe_id = $_POST["shoe_id"];
-    // Delete shoe from database using the deleteShoe() function
     deleteShoe($shoe_id);
-    echo "Shoe deleted successfully";
+    $message = "Shoe deleted successfully";
 }
 
-// Check if form is submitted for updating a shoe
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["update_shoe"])) {
-    // Retrieve form data
-    $shoe_id = $_POST["shoe_id"];
-    $brand = $_POST["brand"];
-    $size = $_POST["size"];
-    $color = $_POST["color"];
-    // Update shoe information in the database using the updateShoe() function
-    updateShoe($shoe_id, $brand, $size, $color);
-    echo "Shoe information updated successfully";
-}
 
-// Check if form is submitted for editing a shoe
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["edit_shoe"])) {
-    // Retrieve shoe ID to edit
     $shoe_id = $_POST["shoe_id"];
-    // Redirect to edit page with shoe ID as parameter
     header("Location: edit.php?id=$shoe_id");
     exit();
 }
@@ -52,11 +35,43 @@ $shoes = getShoes();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shoe Stock System</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
 </head>
+<style>
+        .container {
+            width: 80%;
+            margin: auto;
+            text-align: center;
+        }
+        .logo-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            margin: 100px;
+        }
+        .logo-container img {
+            height: 200px; 
+        }
+        .logo-container h1 {
+            flex: 1;
+            text-align: center;
+            font-size: 2em;
+        }
+    </style>01
 <body>
     <div class="container">
-        <h1>Shoe Stock System</h1>
-        <h2>Add New Shoe</h2>
+        <div class="logo-container">
+            <img src="r.png" alt="Left Logo">
+        <h1>Shoe Inventory System</h1>
+            <img src="r.png" alt="Right Logo">
+         </div>
+        <?php if ($message): ?>
+            <p><?= $message ?></p>
+        <?php endif; ?>
         <form action="index.php" method="post">
             <label for="brand">Brand:</label>
             <input type="text" id="brand" name="brand" required><br>
@@ -64,6 +79,7 @@ $shoes = getShoes();
             <input type="text" id="size" name="size" required><br>
             <label for="color">Color:</label>
             <input type="text" id="color" name="color" required><br>
+            <br>
             <button class="button type1" type="submit" name="add_shoe">Add Shoe</button>
         </form>
 
@@ -79,28 +95,59 @@ $shoes = getShoes();
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ($shoes as $shoe) { ?>
+                <?php foreach ($shoes as $shoe): ?>
                     <tr>
                         <td><?= $shoe['ShoeID'] ?></td>
                         <td><?= $shoe['Brand'] ?></td>
                         <td><?= $shoe['Size'] ?></td>
                         <td><?= $shoe['Color'] ?></td>
                         <td>
-                            <form action="index.php" method="post">
+                            <form action="index.php" method="post" style="display:inline-block;">
                                 <input type="hidden" name="shoe_id" value="<?= $shoe['ShoeID'] ?>">
-                                <input type="hidden" name="brand" value="<?= $shoe['Brand'] ?>">
-                                <input type="hidden" name="size" value="<?= $shoe['Size'] ?>">
-                                <input type="hidden" name="color" value="<?= $shoe['Color'] ?>">
                                 <button class="button edit-button" type="submit" name="edit_shoe">Edit</button>
+                            </form>
+                            <form action="index.php" method="post" style="display:inline-block;">
+                                <input type="hidden" name="shoe_id" value="<?= $shoe['ShoeID'] ?>">
                                 <button class="button delete-button" type="submit" name="delete_shoe">Delete</button>
-                                <button class="button update-button" type="submit" name="update_shoe">Update</button>
                             </form>
                         </td>
-
                     </tr>
-                <?php } ?>
+                <?php endforeach; ?>
             </tbody>
         </table>
+
+        <h2>Shoe Inventory Overview</h2>
+        <canvas id="inventoryChart"></canvas>
     </div>
+
+    <script>
+        $(document).ready(function() {
+            $('#inventoryTable').DataTable();
+
+            var ctx = document.getElementById('inventoryChart').getContext('2d');
+            var inventoryData = {
+                labels: <?php echo json_encode(array_column($shoes, 'Brand')); ?>,
+                datasets: [{
+                    label: 'Shoe Sizes',
+                    data: <?php echo json_encode(array_column($shoes, 'Size')); ?>,
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            };
+
+            var inventoryChart = new Chart(ctx, {
+                type: 'bar',
+                data: inventoryData,
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        });
+    </script>
 </body>
 </html>
