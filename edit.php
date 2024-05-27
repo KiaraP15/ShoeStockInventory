@@ -1,12 +1,10 @@
 <?php
-include 'add_shoe.php'; // Include the CRUD operations file
+include 'add_shoe.php';
 
-// Check if shoe ID is provided in the URL
-if(isset($_GET['id'])) {
+if (isset($_GET['id'])) {
     $shoe_id = $_GET['id'];
-    // Retrieve shoe details from the database
     $shoe = getShoeById($shoe_id);
-    if(!$shoe) {
+    if (!$shoe) {
         echo "Shoe not found!";
         exit();
     }
@@ -15,16 +13,11 @@ if(isset($_GET['id'])) {
     exit();
 }
 
-// Check if form is submitted for updating the shoe
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["update_shoe"])) {
-    // Retrieve form data
     $brand = $_POST["brand"];
     $size = $_POST["size"];
     $color = $_POST["color"];
-    // Update shoe information in the database using the updateShoe() function
     updateShoe($shoe_id, $brand, $size, $color);
-    echo "Shoe information updated successfully";
-    // Redirect back to index.php
     header("Location: index.php");
     exit();
 }
@@ -39,17 +32,48 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["update_shoe"])) {
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<style>
+        .container {
+            width: 80%;
+            margin: auto;
+            text-align: center;
+        }
+        .logo-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            margin: 100px;
+        }
+        .logo-container img {
+            height: 200px; 
+        }
+        .logo-container h1 {
+            flex: 1;
+            text-align: center;
+            font-size: 2em;
+        }
+    </style>
     <div class="container">
+
+        <div class="logo-container">
+            <img src="r.png" alt="Left Logo">
         <h1>Edit Shoe</h1>
-        <form action="edit.php?id=<?= $shoe_id ?>" method="post">
+            <img src="r.png" alt="Right Logo">
+         </div>
+        <form action="edit.php?id=<?= $shoe['ShoeID'] ?>" method="post">
             <label for="brand">Brand:</label>
             <input type="text" id="brand" name="brand" value="<?= $shoe['Brand'] ?>" required><br>
             <label for="size">Size:</label>
             <input type="text" id="size" name="size" value="<?= $shoe['Size'] ?>" required><br>
             <label for="color">Color:</label>
             <input type="text" id="color" name="color" value="<?= $shoe['Color'] ?>" required><br>
-            <button class="button" type="submit" name="update_shoe">Update Shoe</button>
+            <br>
+            <button class="button type1" type="submit" name="update_shoe">Update Shoe</button>
         </form>
+        
+        <!-- Back to Home Button -->
+        <center><a href="index.php" class="button type2">Back</a></center>
     </div>
 </body>
 </html>
